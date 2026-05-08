@@ -10,34 +10,31 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Firebase
+  # Firebase Araçları
   firebase_core: ^3.15.2
   firebase_auth: ^5.7.0
   cloud_firestore: ^5.5.1
 
-  # UI
-  cupertino_icons: ^1.0.8
+  # Dosya ve Veri Araçları
+  file_picker: 8.1.2
+  csv: ^6.0.0
+  uuid: ^4.5.3
+  file_saver: ^0.2.10
 
-  # Google Fonts (Playfair Display için)
+  # Tasarım ve İkonlar
+  cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  flutter_launcher_icons: "^0.13.1" # Bunu ekleyin
-flutter:
-  uses-material-design: true
+  flutter_launcher_icons: ^0.13.1
 
-  # Özel fontlar (alternatif: google_fonts paketi ile runtime yükleme)
-  # fonts:
-  #   - family: Playfair Display
-  #     fonts:
-  #       - asset: assets/fonts/PlayfairDisplay-Regular.ttf
-  #       - asset: assets/fonts/PlayfairDisplay-Bold.ttf
-  #         weight: 700
-  #       - asset: assets/fonts/PlayfairDisplay-SemiBold.ttf
-  #         weight: 600
 flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/logo.png"
+
+flutter:
+  uses-material-design: true

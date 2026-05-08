@@ -78,7 +78,14 @@ class _LoginScreenState extends State<LoginScreen>
       // BAŞARILI GİRİŞ: KULLANICI ROLÜNÜ KONTROL ET
       final user = result.user;
       if (user != null) {
+        print('--- DİKKAT: GİRİŞ YAPAN UID: ${user.uid} ---'); // HAYALET AVI 1
         final profile = await FirestoreService().getUserProfile(user.uid);
+        print('--- DİKKAT: GELEN PROFİL: $profile ---'); // HAYALET AVI 2
+        
+        if (profile != null) {
+          print('--- DİKKAT: OKUNAN ROL: "${profile.role}" ---'); // HAYALET AVI 3
+        }
+
         if (!mounted) return;
         
         if (profile != null && profile.role == 'lawyer') {
@@ -94,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen>
         }
       }
     }
-  }
+  } // DİKKAT: EKSİK OLAN 1. PARANTEZ BURAYA EKLENDİ
 
   @override
   Widget build(BuildContext context) {
@@ -252,7 +259,6 @@ class _LoginScreenState extends State<LoginScreen>
       alignment: Alignment.centerRight,
       child: TextButton(
         onPressed: () {
-          // Şifre sıfırlama işlevi
           _showPasswordResetDialog();
         },
         child: const Text(
@@ -293,7 +299,6 @@ class _LoginScreenState extends State<LoginScreen>
           ),
           TextButton(
             onPressed: () {
-              // Firebase şifre sıfırlama e-postası gönder
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(

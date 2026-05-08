@@ -1,65 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-// FİREBASE AYAR DOSYASI EKLENDİ (Kırmızı ekrandan kurtaran satır)
-import 'firebase_options.dart'; 
-
-// CLAUDE'UN DOSYA YAPISI (Bu dosyaları birazdan oluşturacağız)
+import 'package:cloud_firestore/cloud_firestore.dart'; // 🌟 Rol okumak için eklendi
+import 'firebase_options.dart';
 import 'app_theme.dart';
 import 'login_screen.dart';
-import 'main_shell.dart';
+import 'lawyer_main_shell.dart';
+import 'client_main_shell.dart'; // 🌟 Müvekkil paneli eklendi
 
-/// ─────────────────────────────────────────────────────────────────────────────
-/// SB Legal — Ana Giriş Noktası
-/// ─────────────────────────────────────────────────────────────────────────────
-
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // FİREBASE BAĞLANTISI AKTİF EDİLDİ
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform, 
+    options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  // Sistem UI stilini ayarla — status bar luxury temaya uygun
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Color(0xFF0A192F), // Tema rengi
-    systemNavigationBarIconBrightness: Brightness.light,
-  ));
-
-  // Tüm yönlendirmelere (Dikey ve Yatay) izin ver
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-  ]);
-
-  runApp(const SBLegalApp());
+  runApp(const MyApp());
 }
 
-/// Uygulamanın kök widget'ı.
-class SBLegalApp extends StatelessWidget {
-  const SBLegalApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SB Legal',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme, // Tema dosyasından çekilecek
+      theme: AppTheme.darkTheme,
       home: const AuthGate(),
     );
   }
 }
 
-/// ─────────────────────────────────────────────────────────────────────────────
-/// AuthGate — Kullanıcı oturum durumunu dinler
-/// ─────────────────────────────────────────────────────────────────────────────
+// 🛡️ AKILLI AUTH GATE: Kullanıcıları E-POSTA ile tanır
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
@@ -68,94 +39,43 @@ class AuthGate extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const _SplashScreen();
+        if (!snapshot.hasData) {
+          return const LoginScreen();
         }
 
-        if (snapshot.hasData && snapshot.data != null) {
-          return const MainShell();
-        }
+        final user = snapshot.data!;
+        
+        // 🌟 DİKKAT: Artık uid ile değil, e-posta ile arıyoruz!
+        return FutureBuilder<QuerySnapshot>(
+          future: FirebaseFirestore.instance
+              .collection('users')
+              .where('email', isEqualTo: user.email)
+              .limit(1)
+              .get(),
+          builder: (context, roleSnapshot) {
+            if (roleSnapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                backgroundColor: AppColors.navy,
+                body: Center(child: CircularProgressIndicator(color: AppColors.gold)),
+              );
+            }
 
-        return const LoginScreen();
+            if (roleSnapshot.hasData && roleSnapshot.data!.docs.isNotEmpty) {
+              final userData = roleSnapshot.data!.docs.first.data() as Map<String, dynamic>;
+              final role = userData['role'] ?? 'client';
+
+              if (role == 'lawyer') {
+                return const LawyerMainShell();
+              } else {
+                return const ClientMainShell();
+              }
+            }
+
+            // Kayıt bulunamazsa girişe at
+            return const LoginScreen(); 
+          },
+        );
       },
-    );
-  }
-}
-
-/// Uygulama yüklenirken gösterilen splash ekranı.
-class _SplashScreen extends StatelessWidget {
-  const _SplashScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0A192F), // Yedek arka plan
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0F203C), Color(0xFF0A192F)], // Lacivert geçiş
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(milliseconds: 1200),
-                builder: (context, value, child) {
-                  return Opacity(
-                    opacity: value,
-                    child: Transform.scale(
-                      scale: 0.8 + (value * 0.2),
-                      child: child,
-                    ),
-                  );
-                },
-                child: Column(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFFD4AF37), width: 2), // Altın rengi
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(
-                        Icons.balance,
-                        color: Color(0xFFD4AF37),
-                        size: 44,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'SB LEGAL',
-                      style: TextStyle(
-                        fontFamily: 'Playfair Display', // Bu fontu daha sonra ekleriz
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFD4AF37),
-                        letterSpacing: 8,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 60),
-              const SizedBox(
-                width: 30,
-                height: 30,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: Color(0xFFD4AF37),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
