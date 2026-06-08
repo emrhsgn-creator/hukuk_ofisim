@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'app_theme.dart';
 import 'firebase_service.dart';
 import 'common_widgets.dart';
-import 'main_shell.dart';
-import 'lawyer_main_shell.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
 /// Giriş Ekranı — Firebase Auth ile e-posta/şifre doğrulama
@@ -74,34 +72,13 @@ class _LoginScreenState extends State<LoginScreen>
         _isLoading = false;
         _errorMessage = result.error;
       });
-    } else {
-      // BAŞARILI GİRİŞ: KULLANICI ROLÜNÜ KONTROL ET
-      final user = result.user;
-      if (user != null) {
-        print('--- DİKKAT: GİRİŞ YAPAN UID: ${user.uid} ---'); // HAYALET AVI 1
-        final profile = await FirestoreService().getUserProfile(user.uid);
-        print('--- DİKKAT: GELEN PROFİL: $profile ---'); // HAYALET AVI 2
-        
-        if (profile != null) {
-          print('--- DİKKAT: OKUNAN ROL: "${profile.role}" ---'); // HAYALET AVI 3
-        }
-
-        if (!mounted) return;
-        
-        if (profile != null && profile.role == 'lawyer') {
-          // Eğer rol "lawyer" ise Avukat Yönetim Paneline yönlendir
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const LawyerMainShell()),
-          );
-        } else {
-          // Değilse normal Müvekkil Ana Sayfasına yönlendir
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const MainShell()),
-          );
-        }
-      }
     }
-  } // DİKKAT: EKSİK OLAN 1. PARANTEZ BURAYA EKLENDİ
+    // Başarılı girişte yönlendirmeyi tek elden AuthGate (main.dart) üstlenir:
+    // authStateChanges tetiklenir, rol e-posta üzerinden okunur ve kullanıcı
+    // doğru panele (avukat/müvekkil) yönlendirilir. Burada ayrıca yönlendirme
+    // yapmak iki farklı rol-okuma yolu (uid vs e-posta) oluşturup tutarsızlığa
+    // yol açtığı için kaldırıldı.
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -298,12 +275,20 @@ class _LoginScreenState extends State<LoginScreen>
             child: const Text('İptal', style: TextStyle(color: AppColors.textMuted)),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              final email = resetEmailController.text.trim();
               Navigator.pop(ctx);
+              final result = await _authService.sendPasswordReset(email);
+              if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Şifre sıfırlama e-postası gönderildi.'),
-                  backgroundColor: AppColors.success,
+                SnackBar(
+                  content: Text(
+                    result.success
+                        ? 'Şifre sıfırlama e-postası gönderildi. Gelen kutunuzu kontrol edin.'
+                        : (result.error ?? 'Bir hata oluştu.'),
+                  ),
+                  backgroundColor:
+                      result.success ? AppColors.success : AppColors.error,
                 ),
               );
             },

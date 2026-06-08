@@ -1,0 +1,78 @@
+rules_version = '2';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SB Legal — Firestore Güvenlik Kuralları (P0 TASLAK)
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// AMAÇ: Avukat-müvekkil sırrı ve KVKK gereği, giriş yapan her kullanıcının
+// SADECE yetkili olduğu verilere erişmesini sağlamak.
+//
+// ⚠️ ÖN KOŞUL (ÖNEMLİ):
+//   Bu kurallar, `users/{docId}` dökümanının id'sinin kullanıcının Firebase
+//   Auth uid'sine EŞİT olduğunu varsayar (rol kontrolü buna dayanır).
+//   - Kendi kaydını oluşturan kullanıcılarda bu zaten doğrudur (register()).
+//   - Avukatın oluşturduğu müvekkil hesaplarında (grantClientAccess) auth uid
+//     ile users döküman id'si AYRI olabilir. Bu kurallar devreye alınmadan önce
+//     müvekkil oluşturma akışı, users dökümanını auth uid'i ile yazacak şekilde
+//     düzeltilmelidir (P0 kapsamında ayrıca ele alınacak kimlik modeli işi).
+//   - Benzer şekilde `cases.clientId` ve `appointments.clientId` alanları,
+//     müvekkilin auth uid'ini taşımalıdır.
+//
+// 🧪 DEPLOY ETMEDEN ÖNCE: Firebase Console > Firestore > Rules > "Rules
+//   Playground" ile avukat ve müvekkil senaryolarını test edin. Yanlış kural
+//   gerçek kullanıcıları kilitleyebilir.
+// ─────────────────────────────────────────────────────────────────────────────
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Yardımcı fonksiyonlar ──
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwnerDoc(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Giriş yapan kullanıcının rolünü kendi users dökümanından okur.
+    function isLawyer() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'lawyer';
+    }
+
+    // ── KULLANICILAR (müvekkil + avukat profilleri) ──
+    match /users/{userId} {
+      // Kişi kendi profilini okur; avukat tüm profilleri (müvekkil portföyü) okur.
+      allow read: if isOwnerDoc(userId) || isLawyer();
+      // Kayıt sırasında kişi kendi profilini; avukat müvekkil profili oluşturabilir.
+      allow create: if isOwnerDoc(userId) || isLawyer();
+      // Güncelleme/silme: kişinin kendisi veya avukat.
+      allow update, delete: if isOwnerDoc(userId) || isLawyer();
+    }
+
+    // ── DAVA DOSYALARI ──
+    match /cases/{caseId} {
+      // Avukat tüm dosyaları yönetir; müvekkil yalnız kendi dosyasını okur.
+      allow read: if isLawyer()
+        || (isSignedIn() && resource.data.clientId == request.auth.uid);
+      // Dosya oluşturma/değiştirme/silme yalnız avukata aittir.
+      allow create, update, delete: if isLawyer();
+    }
+
+    // ── RANDEVULAR ──
+    match /appointments/{appointmentId} {
+      // Avukat hepsini görür; müvekkil yalnız kendi randevusunu görür.
+      allow read: if isLawyer()
+        || (isSignedIn() && resource.data.clientId == request.auth.uid);
+      // Müvekkil yalnız KENDİ adına randevu talebi oluşturabilir; avukat serbest.
+      allow create: if isLawyer()
+        || (isSignedIn() && request.resource.data.clientId == request.auth.uid);
+      // Randevu durumunu (onay/ret) güncelleme yalnız avukata aittir.
+      allow update, delete: if isLawyer();
+    }
+
+    // Tanımlanmamış tüm yollar varsayılan olarak REDDEDİLİR.
+  }
+}
