@@ -26,14 +26,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadProfile() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final profile = await _firestore.getUserProfile(user.uid);
+    if (user != null && user.email != null) {
+      // Sistem e-posta merkezli olduğu için uid yerine e-posta ile okuyoruz.
+      final profile = await _firestore.getUserProfileByEmail(user.email!);
       if (mounted) {
         setState(() {
           _profile = profile;
           _isLoading = false;
         });
       }
+    } else if (mounted) {
+      setState(() => _isLoading = false);
     }
   }
 

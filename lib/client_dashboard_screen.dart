@@ -41,16 +41,14 @@ class ClientDashboardScreen extends StatelessWidget {
           final userDoc = userSnapshot.data!.docs.first;
           final userData = userDoc.data() as Map<String, dynamic>;
 
-          // Kimlik bilgilerini al (id veya uid fark etmeksizin)
-          final String firestoreUid =
-              userData['uid'] ?? userData['id'] ?? userDoc.id;
           final String fullName = userData['fullName'] ?? 'Müvekkilimiz';
 
           return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            // 2. Müvekkile ait dosyaları canlı dinle
+            // 2. Müvekkile ait dosyaları canlı dinle (🔐 e-posta ile — güvenlik
+            // kuralları sorguyu ancak clientEmail üzerinden yetkilendirebiliyor)
             stream: FirebaseFirestore.instance
                 .collection('cases')
-                .where('clientId', isEqualTo: firestoreUid)
+                .where('clientEmail', isEqualTo: currentUser?.email)
                 .snapshots(),
             builder: (context, caseSnapshot) {
               if (caseSnapshot.connectionState == ConnectionState.waiting) {

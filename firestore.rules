@@ -1,0 +1,85 @@
+rules_version = '2';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SB Legal — Firestore Güvenlik Kuralları (E-POSTA BAZLI MODEL)
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// MODEL: Uygulama e-posta merkezlidir (users döküman id'si = rastgele UUID,
+// Auth uid'i değil). Bu yüzden kurallar kimliği request.auth.token.email ile
+// doğrular.
+//   • Avukat tanıma:   id'si avukatın küçük-harfli e-postası olan `staff`
+//                      koleksiyonundaki dökümanın varlığı.
+//   • Müvekkil/dava:   dava dökümanındaki `clientEmail` == token e-postası.
+//   • Randevu:         `clientId` == Auth uid (randevular zaten uid ile yazılıyor).
+//
+// ⚠️ DEVREYE ALMA SIRASI (ÖNEMLİ):
+//   1) ÖNCE uygulamadaki "Veri Bakımı (tek seferlik)" işlemini bir avukatla
+//      çalıştırın → `staff` kaydını oluşturur ve mevcut davalara `clientEmail`
+//      doldurur. (Bu kurallar deploy edilince `staff` yazımı kilitlenir!)
+//   2) SONRA bu kuralları deploy edin.
+//
+// 🧪 Deploy etmeden önce Firebase Console > Firestore > Rules > "Rules
+//    Playground"da avukat ve müvekkil senaryolarını test edin.
+// ─────────────────────────────────────────────────────────────────────────────
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function tokenEmail() {
+      return isSignedIn() ? request.auth.token.email : '';
+    }
+
+    // Giriş yapan kullanıcı, id'si kendi e-postası olan bir staff dökümanına
+    // sahipse avukattır.
+    function isLawyer() {
+      return isSignedIn()
+        && request.auth.token.email != null
+        && exists(/databases/$(database)/documents/staff/$(request.auth.token.email.lower()));
+    }
+
+    // ── STAFF (avukat kayıtları) ──
+    // Okuma serbest (giriş yapmış); YAZMA kapalı — yalnız test modunda/console
+    // üzerinden oluşturulur (bkz. devreye alma sırası).
+    match /staff/{staffEmail} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // ── USERS (müvekkil + avukat profilleri) ──
+    match /users/{userId} {
+      // Avukat tüm profilleri; müvekkil yalnız kendi (e-posta eşleşen) profilini okur.
+      allow read: if isLawyer()
+        || (isSignedIn() && resource.data.email == tokenEmail());
+      // Profil oluşturma/güncelleme/silme yalnız avukata aittir.
+      allow create, update, delete: if isLawyer();
+    }
+
+    // ── CASES (dava dosyaları) ──
+    match /cases/{caseId} {
+      // Avukat tümünü; müvekkil yalnız clientEmail'i kendi e-postasına eşit
+      // olan dosyaları okur. (Müvekkil sorgusu da clientEmail ile yapılmalıdır.)
+      allow read: if isLawyer()
+        || (isSignedIn() && resource.data.clientEmail == tokenEmail());
+      // Dosya oluşturma/değiştirme/silme yalnız avukata aittir.
+      allow create, update, delete: if isLawyer();
+    }
+
+    // ── APPOINTMENTS (randevular) ──
+    match /appointments/{appointmentId} {
+      // Avukat tümünü; müvekkil yalnız kendi (clientId == uid) randevusunu okur.
+      allow read: if isLawyer()
+        || (isSignedIn() && resource.data.clientId == request.auth.uid);
+      // Müvekkil yalnız KENDİ adına randevu talebi oluşturabilir; avukat serbest.
+      allow create: if isLawyer()
+        || (isSignedIn() && request.resource.data.clientId == request.auth.uid);
+      // Randevu durumunu güncelleme/silme yalnız avukata aittir.
+      allow update, delete: if isLawyer();
+    }
+
+    // Tanımlanmamış tüm yollar varsayılan olarak REDDEDİLİR.
+  }
+}

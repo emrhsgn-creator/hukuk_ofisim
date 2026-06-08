@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'models.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -62,6 +63,22 @@ class AuthService {
     await _auth.signOut();
   }
 
+  /// Şifre sıfırlama e-postası gönderir.
+  Future<({bool success, String? error})> sendPasswordReset(String email) async {
+    final trimmed = email.trim();
+    if (trimmed.isEmpty) {
+      return (success: false, error: 'Lütfen e-posta adresinizi girin.');
+    }
+    try {
+      await _auth.sendPasswordResetEmail(email: trimmed);
+      return (success: true, error: null);
+    } on FirebaseAuthException catch (e) {
+      return (success: false, error: _mapAuthError(e.code));
+    } catch (e) {
+      return (success: false, error: 'Şifre sıfırlama e-postası gönderilemedi.');
+    }
+  }
+
   String _mapAuthError(String code) {
     switch (code) {
       case 'user-not-found':
@@ -92,7 +109,7 @@ class FirestoreService {
     try {
       await _db.collection('cases').doc(caseId).delete();
     } catch (e) {
-      print('Dosya silinirken hata oluştu: $e');
+      debugPrint('Dosya silinirken hata oluştu: $e');
       rethrow;
     }
   }
@@ -103,7 +120,7 @@ class FirestoreService {
       // Not: 'users' koleksiyon adı senin projende farklıysa (örn: 'profiles') onu değiştir
       await _db.collection('users').doc(uid).delete();
     } catch (e) {
-      print('Müvekkil silinirken hata oluştu: $e');
+      debugPrint('Müvekkil silinirken hata oluştu: $e');
       rethrow;
     }
   }
@@ -113,7 +130,7 @@ class FirestoreService {
     try {
       await _db.collection('appointments').doc(appointmentId).delete();
     } catch (e) {
-      print('Randevu silinirken hata oluştu: $e');
+      debugPrint('Randevu silinirken hata oluştu: $e');
       rethrow;
     }
   }
@@ -166,6 +183,19 @@ class FirestoreService {
     if (!doc.exists) return null;
     return UserProfile.fromFirestore(doc);
   }
+
+  /// E-posta ile profil okur. Sistem e-posta merkezli olduğundan (users döküman
+  /// id'si Auth uid'ine eşit olmayabilir) uid yerine bunu kullanmak daha güvenli.
+  Future<UserProfile?> getUserProfileByEmail(String email) async {
+    final snap = await _db
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .get();
+    if (snap.docs.isEmpty) return null;
+    return UserProfile.fromFirestore(snap.docs.first);
+  }
+
 
   Future<List<UserProfile>> getAllClients() async {
     final snapshot =

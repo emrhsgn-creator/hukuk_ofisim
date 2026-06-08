@@ -21,6 +21,7 @@ class _AddCaseScreenState extends State<AddCaseScreen> {
   final _clientSearchController = TextEditingController();
 
   String? _selectedClientId;
+  String? _selectedClientEmail;
 
   // 🌟 YENİ: DOSYA DURUMU SEÇENEKLERİ
   final List<String> _statusOptions = [
@@ -79,6 +80,7 @@ class _AddCaseScreenState extends State<AddCaseScreen> {
       final newCase = CaseFile(
         id: '',
         clientId: _selectedClientId!,
+        clientEmail: _selectedClientEmail, // 🔐 Güvenlik kuralları için
         title: _titleController.text.trim(),
         caseNumber: _caseNumberController.text.trim(),
         court: _courtController.text.trim(),
@@ -144,6 +146,7 @@ class _AddCaseScreenState extends State<AddCaseScreen> {
                       onSelected: (UserProfile selection) {
                         setState(() {
                           _selectedClientId = selection.uid;
+                          _selectedClientEmail = selection.email;
                         });
                       },
                       fieldViewBuilder:
@@ -163,7 +166,10 @@ class _AddCaseScreenState extends State<AddCaseScreen> {
                                         color: AppColors.textMuted),
                                     onPressed: () {
                                       controller.clear();
-                                      setState(() => _selectedClientId = null);
+                                      setState(() {
+                                        _selectedClientId = null;
+                                        _selectedClientEmail = null;
+                                      });
                                     },
                                   )
                                 : null,
