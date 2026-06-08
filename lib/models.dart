@@ -12,6 +12,10 @@ class CaseFile {
   final String? nextHearingTime;
   final String? opposingParty;
   final String? lawyerName; // 🌟 EKSİK OLAN DEĞİŞKEN EKLENDİ
+  // 🔐 Güvenlik kurallarının müvekkil sahipliğini doğrulayabilmesi için, davanın
+  // sahibi müvekkilin e-postası. (clientId rastgele UUID olduğundan kurallar onu
+  // kimliğe bağlayamıyor; e-posta token ile eşleştirilebiliyor.)
+  final String? clientEmail;
 
   CaseFile({
     required this.id,
@@ -25,6 +29,7 @@ class CaseFile {
     this.nextHearingTime,
     this.opposingParty,
     this.lawyerName, // 🌟
+    this.clientEmail,
   });
 
   factory CaseFile.fromFirestore(dynamic doc) {
@@ -38,6 +43,7 @@ class CaseFile {
       status: data['status'] ?? 'active',
       opposingParty: data['opposingParty'],
       lawyerName: data['lawyerName'], // 🌟
+      clientEmail: data['clientEmail'],
       timeline: (data['timeline'] as List<dynamic>?)
               ?.map((e) => CaseEvent.fromMap(e as Map<String, dynamic>))
               .toList() ??
@@ -56,6 +62,7 @@ class CaseFile {
       'status': status,
       'opposingParty': opposingParty,
       'lawyerName': lawyerName, // 🌟
+      'clientEmail': clientEmail,
       'timeline': timeline.map((e) => e.toMap()).toList(),
       'nextHearingDate': nextHearingDate,
       'nextHearingTime': nextHearingTime,

@@ -26,14 +26,89 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadProfile() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final profile = await _firestore.getUserProfile(user.uid);
+    if (user != null && user.email != null) {
+      // Sistem e-posta merkezli olduğu için uid yerine e-posta ile okuyoruz.
+      final profile = await _firestore.getUserProfileByEmail(user.email!);
       if (mounted) {
         setState(() {
           _profile = profile;
           _isLoading = false;
         });
       }
+    } else if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  /// TEK SEFERLİK veri bakımı: avukatı 'staff' koleksiyonuna ekler ve mevcut
+  /// davalara 'clientEmail' alanını doldurur. Güvenlik kuralları DEPLOY
+  /// EDİLMEDEN ÖNCE, giriş yapmış avukat tarafından bir kez çalıştırılmalıdır.
+  Future<void> _runMaintenance() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user?.email == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.navyLight,
+        title: const Text('Veri Bakımı', style: TextStyle(color: AppColors.gold)),
+        content: const Text(
+          'Bu işlem (tek seferlik):\n\n'
+          '• Hesabınızı yetkili avukat olarak kaydeder.\n'
+          '• Mevcut davalara müvekkil e-postasını ekler.\n\n'
+          'Hiçbir veri silinmez. Devam edilsin mi?',
+          style: TextStyle(color: Colors.white),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('İPTAL', style: TextStyle(color: AppColors.textMuted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('ÇALIŞTIR', style: TextStyle(color: AppColors.navy)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) =>
+          const Center(child: CircularProgressIndicator(color: AppColors.gold)),
+    );
+
+    try {
+      await _firestore.registerStaff(user!.email!);
+      final result = await _firestore.backfillCaseClientEmails();
+      if (!mounted) return;
+      Navigator.pop(context); // yükleniyor kapat
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppColors.navyLight,
+          title: const Text('Bakım Tamamlandı',
+              style: TextStyle(color: AppColors.success)),
+          content: Text(result, style: const TextStyle(color: Colors.white)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('TAMAM', style: TextStyle(color: AppColors.gold)),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // yükleniyor kapat
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Bakım hatası: $e'),
+        backgroundColor: AppColors.error,
+      ));
     }
   }
 
@@ -95,6 +170,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Icons.fingerprint, "T.C. Kimlik No", "Doğrulandı"),
 
                     const SizedBox(height: 40),
+
+                    // 🔧 TEK SEFERLİK VERİ BAKIMI — yalnız avukatlara görünür.
+                    // Güvenlik kuralları devreye alınmadan önce bir kez çalıştırılır.
+                    if (_profile?.role == 'lawyer') ...[
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.gold,
+                          side: const BorderSide(color: AppColors.gold),
+                          minimumSize: const Size(double.infinity, 50),
+                        ),
+                        onPressed: _runMaintenance,
+                        icon: const Icon(Icons.build_circle_outlined),
+                        label: const Text('Veri Bakımı (tek seferlik)'),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
 
                     // Çıkış Yap Butonu
                     GoldButton(
