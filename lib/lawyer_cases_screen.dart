@@ -18,7 +18,8 @@ class LawyerCasesScreen extends StatelessWidget {
         return AlertDialog(
           backgroundColor: AppColors.navyLight,
           title:
-              const Text('Dosyayı Sil', style: TextStyle(color: Colors.white)),
+              const Text('Dosyayı Sil',
+                  style: TextStyle(color: AppColors.textPrimary)),
           content: Text(
             '"${caseFile.title}" başlıklı dosyayı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
             style: const TextStyle(color: AppColors.textSecondary),
@@ -162,10 +163,10 @@ class LawyerCasesScreen extends StatelessWidget {
               MaterialPageRoute(builder: (_) => const AddCaseScreen()));
         },
         backgroundColor: AppColors.gold,
-        icon: const Icon(Icons.add, color: AppColors.navy),
+        icon: const Icon(Icons.add, color: AppColors.ink),
         label: const Text('Yeni Dava Ekle',
             style:
-                TextStyle(color: AppColors.navy, fontWeight: FontWeight.bold)),
+                TextStyle(color: AppColors.ink, fontWeight: FontWeight.bold)),
       ),
     );
   }

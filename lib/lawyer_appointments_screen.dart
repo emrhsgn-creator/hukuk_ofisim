@@ -15,7 +15,8 @@ class LawyerAppointmentsScreen extends StatelessWidget {
         return AlertDialog(
           backgroundColor: AppColors.navyLight,
           title:
-              const Text('Talebi Sil', style: TextStyle(color: Colors.white)),
+              const Text('Talebi Sil',
+                  style: TextStyle(color: AppColors.textPrimary)),
           content: Text(
             '"${appo.clientName}" kişisine ait "${appo.subject}" konulu randevu talebini kalıcı olarak silmek istediğinize emin misiniz?',
             style: const TextStyle(color: AppColors.textSecondary),

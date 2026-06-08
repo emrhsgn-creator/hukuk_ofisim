@@ -24,7 +24,7 @@ class LawyerDashboardScreen extends StatelessWidget {
             const Text(
               'Hoş Geldiniz',
               style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontSize: 24,
                   fontWeight: FontWeight.bold),
             ),
@@ -125,7 +125,7 @@ class LawyerDashboardScreen extends StatelessWidget {
                         leading: const Icon(Icons.gavel, color: AppColors.gold),
                         title: Text(c.title,
                             style: const TextStyle(
-                                color: Colors.white,
+                                color: AppColors.textPrimary,
                                 fontWeight: FontWeight.bold)),
                         subtitle: Text('${c.court}\nEsas: ${c.caseNumber}',
                             style: const TextStyle(
@@ -154,7 +154,7 @@ class LawyerDashboardScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Text(count,
               style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontSize: 28,
                   fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),

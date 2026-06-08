@@ -25,7 +25,7 @@ class _LawyerClientsScreenState extends State<LawyerClientsScreen> {
         return AlertDialog(
           backgroundColor: AppColors.navyLight,
           title: const Text('Müvekkili Sil',
-              style: TextStyle(color: Colors.white)),
+              style: TextStyle(color: AppColors.textPrimary)),
           content: Text(
               '"${client.fullName}" isimli müvekkili silmek istediğinize emin misiniz?'),
           actions: [
@@ -67,12 +67,12 @@ class _LawyerClientsScreenState extends State<LawyerClientsScreen> {
           children: [
             TextField(
                 controller: nameController,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppColors.textPrimary),
                 decoration: const InputDecoration(labelText: 'Ad Soyad')),
             const SizedBox(height: 16),
             TextField(
                 controller: emailController,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppColors.textPrimary),
                 decoration: const InputDecoration(labelText: 'E-posta')),
           ],
         ),
@@ -94,7 +94,7 @@ class _LawyerClientsScreenState extends State<LawyerClientsScreen> {
               if (mounted) Navigator.pop(ctx);
             },
             child:
-                const Text('KAYDET', style: TextStyle(color: AppColors.navy)),
+                const Text('KAYDET', style: TextStyle(color: AppColors.ink)),
           )
         ],
       ),
@@ -122,9 +122,9 @@ class _LawyerClientsScreenState extends State<LawyerClientsScreen> {
                       fontWeight: FontWeight.bold)),
               const Divider(color: AppColors.navyMedium, height: 30),
               ListTile(
-                leading: const Icon(Icons.edit, color: Colors.white),
+                leading: const Icon(Icons.edit, color: AppColors.textPrimary),
                 title: const Text('Bilgileri Düzenle',
-                    style: TextStyle(color: Colors.white)),
+                    style: TextStyle(color: AppColors.textPrimary)),
                 onTap: () {
                   Navigator.pop(bottomSheetContext);
                   _showEditClientDialog(parentContext, client);
@@ -133,7 +133,7 @@ class _LawyerClientsScreenState extends State<LawyerClientsScreen> {
               ListTile(
                 leading: const Icon(Icons.vpn_key, color: AppColors.success),
                 title: const Text('Uygulama Erişimi (Şifre) Oluştur',
-                    style: TextStyle(color: Colors.white)),
+                    style: TextStyle(color: AppColors.textPrimary)),
                 onTap: () async {
                   // 1. Alt menüyü kapat
                   Navigator.pop(bottomSheetContext);
@@ -200,7 +200,7 @@ class _LawyerClientsScreenState extends State<LawyerClientsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('E-posta: $email',
-                style: const TextStyle(color: Colors.white)),
+                style: const TextStyle(color: AppColors.textPrimary)),
             const SizedBox(height: 10),
             Text('Şifre: $pass',
                 style: const TextStyle(
@@ -254,7 +254,7 @@ class _LawyerClientsScreenState extends State<LawyerClientsScreen> {
                           leading:
                               const Icon(Icons.person, color: AppColors.gold),
                           title: Text(client.fullName,
-                              style: const TextStyle(color: Colors.white)),
+                              style: const TextStyle(color: AppColors.textPrimary)),
                           subtitle: Text(client.email,
                               style: const TextStyle(
                                   color: AppColors.textSecondary)),
@@ -285,7 +285,7 @@ class _LawyerClientsScreenState extends State<LawyerClientsScreen> {
             child: Row(children: [
               Icon(Icons.upload_file, color: AppColors.gold),
               SizedBox(width: 15),
-              Text('Toplu Yükle', style: TextStyle(color: Colors.white))
+              Text('Toplu Yükle', style: TextStyle(color: AppColors.textPrimary))
             ])));
   }
 

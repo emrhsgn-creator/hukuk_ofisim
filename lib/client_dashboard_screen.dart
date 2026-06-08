@@ -35,7 +35,7 @@ class ClientDashboardScreen extends StatelessWidget {
           if (!userSnapshot.hasData || userSnapshot.data!.docs.isEmpty) {
             return const Center(
                 child: Text('Profil yüklenemedi.',
-                    style: TextStyle(color: Colors.white)));
+                    style: TextStyle(color: AppColors.textPrimary)));
           }
 
           final userDoc = userSnapshot.data!.docs.first;
@@ -76,7 +76,7 @@ class ClientDashboardScreen extends StatelessWidget {
                             color: AppColors.textSecondary, fontSize: 16)),
                     Text(fullName,
                         style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontSize: 26,
                             fontWeight: FontWeight.bold)),
                     const SizedBox(height: 30),
@@ -106,7 +106,7 @@ class ClientDashboardScreen extends StatelessWidget {
                                       color: AppColors.gold),
                                   title: Text(h.title,
                                       style: const TextStyle(
-                                          color: Colors.white,
+                                          color: AppColors.textPrimary,
                                           fontWeight: FontWeight.bold)),
                                   subtitle: Text(
                                       'Tarih: ${h.nextHearingDate} - Saat: ${h.nextHearingTime ?? '--:--'}',
@@ -199,7 +199,7 @@ class ClientDashboardScreen extends StatelessWidget {
               const SizedBox(height: 10),
               Text(event.title,
                   style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       fontWeight: FontWeight.bold,
                       fontSize: 15)),
               if (event.description.isNotEmpty) ...[
@@ -233,7 +233,7 @@ class ClientDashboardScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Text(value,
               style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontSize: 24,
                   fontWeight: FontWeight.bold)),
           Text(title,

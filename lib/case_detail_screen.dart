@@ -54,7 +54,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                   ? tempSelectedStatus
                   : 'Derdest',
               dropdownColor: AppColors.navyLight,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
               decoration: InputDecoration(
                 filled: true,
                 fillColor: AppColors.navy,
@@ -117,7 +117,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                 },
                 child: const Text('GÜNCELLE',
                     style: TextStyle(
-                        color: AppColors.navy, fontWeight: FontWeight.bold)),
+                        color: AppColors.ink, fontWeight: FontWeight.bold)),
               ),
             ],
           );
@@ -156,7 +156,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                   DropdownButtonFormField<String>(
                     initialValue: selectedType,
                     dropdownColor: AppColors.navyLight,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppColors.textPrimary),
                     decoration: const InputDecoration(
                         labelText: 'Süreç Türü',
                         labelStyle: TextStyle(color: AppColors.gold)),
@@ -165,7 +165,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                           value: 'note',
                           child: Row(children: const [
                             Icon(Icons.edit_note,
-                                color: Colors.white, size: 18),
+                                color: AppColors.textPrimary, size: 18),
                             SizedBox(width: 8),
                             Text('Bilgi Notu')
                           ])),
@@ -183,7 +183,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                           value: 'document',
                           child: Row(children: const [
                             Icon(Icons.folder_open,
-                                color: Colors.white, size: 18),
+                                color: AppColors.textPrimary, size: 18),
                             SizedBox(width: 8),
                             Text('Evrak Girişi')
                           ])),
@@ -198,7 +198,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                         const Icon(Icons.calendar_today, color: AppColors.gold),
                     title: Text(
                         "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}",
-                        style: const TextStyle(color: Colors.white)),
+                        style: const TextStyle(color: AppColors.textPrimary)),
                     onTap: () async {
                       final picked = await showDatePicker(
                           context: stateContext,
@@ -216,7 +216,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                       leading:
                           const Icon(Icons.access_time, color: AppColors.gold),
                       title: Text(selectedTime.format(stateContext),
-                          style: const TextStyle(color: Colors.white)),
+                          style: const TextStyle(color: AppColors.textPrimary)),
                       onTap: () async {
                         final picked = await showTimePicker(
                             context: stateContext, initialTime: selectedTime);
@@ -228,7 +228,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: titleController,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppColors.textPrimary),
                     decoration: const InputDecoration(
                         labelText: 'Başlık',
                         prefixIcon:
@@ -237,7 +237,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: descController,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppColors.textPrimary),
                     decoration: const InputDecoration(
                         labelText: 'Açıklama',
                         prefixIcon:
@@ -416,7 +416,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
       floatingActionButton: FloatingActionButton(
           onPressed: () => _showEventDialog(),
           backgroundColor: AppColors.gold,
-          child: const Icon(Icons.add, color: AppColors.navy)),
+          child: const Icon(Icons.add, color: AppColors.ink)),
     );
   }
 

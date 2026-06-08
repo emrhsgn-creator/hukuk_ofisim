@@ -154,7 +154,7 @@ class _AddCaseScreenState extends State<AddCaseScreen> {
                         return TextFormField(
                           controller: controller,
                           focusNode: focusNode,
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(color: AppColors.textPrimary),
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: AppColors.navyLight,
@@ -212,7 +212,7 @@ class _AddCaseScreenState extends State<AddCaseScreen> {
                                   return ListTile(
                                     title: Text(option.fullName,
                                         style: const TextStyle(
-                                            color: Colors.white)),
+                                            color: AppColors.textPrimary)),
                                     subtitle: Text(option.email,
                                         style: const TextStyle(
                                             color: AppColors.textSecondary,
@@ -265,7 +265,7 @@ class _AddCaseScreenState extends State<AddCaseScreen> {
                     DropdownButtonFormField<String>(
                       initialValue: _selectedStatus,
                       dropdownColor: AppColors.navyLight,
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: AppColors.navyLight,
@@ -312,7 +312,7 @@ class _AddCaseScreenState extends State<AddCaseScreen> {
   }) {
     return TextFormField(
       controller: controller,
-      style: const TextStyle(color: Colors.white),
+      style: const TextStyle(color: AppColors.textPrimary),
       decoration: InputDecoration(
         filled: true,
         fillColor: AppColors.navyLight,

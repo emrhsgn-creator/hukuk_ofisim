@@ -5,6 +5,7 @@ import 'lawyer_cases_screen.dart';
 import 'lawyer_appointments_screen.dart';
 import 'lawyer_clients_screen.dart';
 import 'profile_screen.dart';
+import 'common_widgets.dart';
 
 class LawyerMainShell extends StatefulWidget {
   const LawyerMainShell({super.key});
@@ -29,9 +30,11 @@ class _LawyerMainShellState extends State<LawyerMainShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.navy,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
+      body: ResponsiveCenter(
+        child: IndexedStack(
+          index: _currentIndex,
+          children: _pages,
+        ),
       ),
       bottomNavigationBar: _buildBottomNav(),
     );

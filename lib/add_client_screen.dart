@@ -90,7 +90,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
   Widget _buildField(TextEditingController controller, String label, IconData icon, {bool isEmail = false, bool isRequired = true}) {
     return TextFormField(
       controller: controller,
-      style: const TextStyle(color: Colors.white),
+      style: const TextStyle(color: AppColors.textPrimary),
       decoration: InputDecoration(
         filled: true,
         fillColor: AppColors.navyLight,

@@ -3,6 +3,7 @@ import 'app_theme.dart';
 import 'profile_screen.dart';
 import 'client_cases_screen.dart'; // 🌟 Yeni dosyamızı buraya çağırdık
 import 'client_dashboard_screen.dart';
+import 'common_widgets.dart';
 
 class ClientMainShell extends StatefulWidget {
   const ClientMainShell({super.key});
@@ -24,9 +25,11 @@ class _ClientMainShellState extends State<ClientMainShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.navy,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
+      body: ResponsiveCenter(
+        child: IndexedStack(
+          index: _currentIndex,
+          children: _pages,
+        ),
       ),
       bottomNavigationBar: _buildBottomNav(),
     );
