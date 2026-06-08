@@ -196,60 +196,6 @@ class FirestoreService {
     return UserProfile.fromFirestore(snap.docs.first);
   }
 
-  // ────────── Güvenlik / Bakım İşlemleri ──────────
-
-  /// Bir avukatı 'staff' koleksiyonuna kaydeder (döküman id'si = küçük harfli
-  /// e-posta). Güvenlik kuralları avukat tanımayı bu koleksiyon üzerinden yapar.
-  /// NOT: Bu yazma yalnız kurallar DEPLOY EDİLMEDEN önce (test modunda) çalışır;
-  /// deploy sonrası 'staff' yazımı kilitlenir (güvenlik için kasıtlı).
-  Future<void> registerStaff(String email) async {
-    final id = email.trim().toLowerCase();
-    await _db.collection('staff').doc(id).set(
-      {'email': id, 'role': 'lawyer'},
-      SetOptions(merge: true),
-    );
-  }
-
-  /// TEK SEFERLİK GÖÇ: Mevcut dava dökümanlarına 'clientEmail' alanını doldurur.
-  /// clientId (UUID) -> müvekkil e-postası eşlemesini 'users' üzerinden kurar.
-  /// İdempotent: clientEmail'i zaten dolu olan davaları atlar, hiçbir şey silmez.
-  Future<String> backfillCaseClientEmails() async {
-    // 1) clientId -> email haritası (hem döküman id'si hem 'uid' alanı denenir)
-    final usersSnap = await _db.collection('users').get();
-    final Map<String, String> idToEmail = {};
-    for (final d in usersSnap.docs) {
-      final data = d.data();
-      final email = (data['email'] ?? '').toString().trim();
-      if (email.isEmpty) continue;
-      idToEmail[d.id] = email;
-      final uidField = data['uid'];
-      if (uidField != null) idToEmail[uidField.toString()] = email;
-    }
-
-    // 2) Davaları gez, eksik clientEmail'leri doldur
-    final casesSnap = await _db.collection('cases').get();
-    int updated = 0;
-    int skipped = 0;
-    int unmatched = 0;
-    for (final c in casesSnap.docs) {
-      final data = c.data();
-      final existing = (data['clientEmail'] ?? '').toString().trim();
-      if (existing.isNotEmpty) {
-        skipped++;
-        continue;
-      }
-      final cid = (data['clientId'] ?? '').toString();
-      final email = idToEmail[cid];
-      if (email != null && email.isNotEmpty) {
-        await c.reference.update({'clientEmail': email});
-        updated++;
-      } else {
-        unmatched++;
-      }
-    }
-    return 'Toplam dava: ${casesSnap.docs.length} • Güncellenen: $updated • '
-        'Zaten dolu: $skipped • Eşleşmeyen: $unmatched';
-  }
 
   Future<List<UserProfile>> getAllClients() async {
     final snapshot =
