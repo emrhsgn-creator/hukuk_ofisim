@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'models.dart';
+import 'email_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
@@ -297,5 +298,73 @@ class FirestoreService {
 
   Future<void> updateAppointmentStatus(String id, String status) async {
     await _db.collection('appointments').doc(id).update({'status': status});
+  }
+
+  // ────────── Bildirim İşlemleri ──────────
+
+  /// Bir dava güncellemesinde ilgili müvekkile hem uygulama içi bildirim hem de
+  /// (yapılandırılmışsa) genel bir mail gönderir. Hedef e-posta yoksa sessizce
+  /// hiçbir şey yapmaz.
+  Future<void> notifyCaseUpdate({
+    required String clientEmail,
+    required String caseId,
+    required String caseTitle,
+    required String title,
+    required String body,
+    String type = 'case_update',
+  }) async {
+    final email = clientEmail.trim();
+    if (email.isEmpty) return;
+
+    // 1) Uygulama içi bildirim kaydı (bir hata olursa kayıt akışını bozmasın)
+    try {
+      await _db.collection('notifications').add(AppNotification(
+            id: '',
+            clientEmail: email,
+            caseId: caseId,
+            caseTitle: caseTitle,
+            title: title,
+            body: body,
+            type: type,
+          ).toMap());
+    } catch (e) {
+      debugPrint('Bildirim oluşturulamadı: $e');
+    }
+
+    // 2) Mail (EmailJS yapılandırılmışsa; KVKK için detaysız)
+    try {
+      String clientName = 'Değerli Müvekkilimiz';
+      final profile = await getUserProfileByEmail(email);
+      if (profile != null && profile.fullName.trim().isNotEmpty) {
+        clientName = profile.fullName.trim();
+      }
+      await EmailService.sendUpdateEmail(
+        toEmail: email,
+        clientName: clientName,
+        caseTitle: caseTitle,
+      );
+    } catch (e) {
+      debugPrint('Bildirim maili gönderilemedi: $e');
+    }
+  }
+
+  /// Müvekkilin bildirimlerini canlı dinler (en yeni en üstte). Bileşik index
+  /// gerekmemesi için sıralama bellekte yapılır.
+  Stream<List<AppNotification>> getClientNotifications(String email) {
+    return _db
+        .collection('notifications')
+        .where('clientEmail', isEqualTo: email)
+        .snapshots()
+        .map((snap) {
+      final list =
+          snap.docs.map((d) => AppNotification.fromFirestore(d)).toList();
+      list.sort((a, b) => (b.createdAt ?? DateTime(2000))
+          .compareTo(a.createdAt ?? DateTime(2000)));
+      return list;
+    });
+  }
+
+  Future<void> markNotificationRead(String id) async {
+    await _db.collection('notifications').doc(id).update({'read': true});
   }
 }

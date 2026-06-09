@@ -80,6 +80,20 @@ service cloud.firestore {
       allow update, delete: if isLawyer();
     }
 
+    // ── NOTIFICATIONS (müvekkil bildirimleri) ──
+    match /notifications/{notifId} {
+      // Avukat tümünü; müvekkil yalnız kendine ait (clientEmail) bildirimleri okur.
+      allow read: if isLawyer()
+        || (isSignedIn() && resource.data.clientEmail == tokenEmail());
+      // Bildirimi yalnız avukat oluşturur.
+      allow create: if isLawyer();
+      // Güncelleme (okundu işaretleme): avukat veya bildirimin sahibi müvekkil.
+      allow update: if isLawyer()
+        || (isSignedIn() && resource.data.clientEmail == tokenEmail());
+      // Silme yalnız avukata aittir.
+      allow delete: if isLawyer();
+    }
+
     // Tanımlanmamış tüm yollar varsayılan olarak REDDEDİLİR.
   }
 }

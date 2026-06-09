@@ -125,6 +125,60 @@ class UserProfile {
       {'fullName': fullName, 'email': email, 'role': role};
 }
 
+/// Müvekkile gönderilen uygulama içi bildirim (dava güncellemesi vb.)
+class AppNotification {
+  final String id;
+  final String clientEmail; // hedef müvekkilin e-postası (kural + sorgu için)
+  final String caseId;
+  final String caseTitle;
+  final String title; // örn: "Dosyanızda yeni gelişme"
+  final String body; // güncelleme metni (in-app'te detay gösterilir)
+  final String type; // 'case_update' | 'hearing' | ...
+  final DateTime? createdAt;
+  final bool read;
+
+  AppNotification({
+    required this.id,
+    required this.clientEmail,
+    required this.caseId,
+    required this.caseTitle,
+    required this.title,
+    required this.body,
+    this.type = 'case_update',
+    this.createdAt,
+    this.read = false,
+  });
+
+  Map<String, dynamic> toMap() => {
+        'clientEmail': clientEmail,
+        'caseId': caseId,
+        'caseTitle': caseTitle,
+        'title': title,
+        'body': body,
+        'type': type,
+        'createdAt': createdAt != null
+            ? Timestamp.fromDate(createdAt!)
+            : FieldValue.serverTimestamp(),
+        'read': read,
+      };
+
+  factory AppNotification.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    final ts = data['createdAt'];
+    return AppNotification(
+      id: doc.id,
+      clientEmail: data['clientEmail'] ?? '',
+      caseId: data['caseId'] ?? '',
+      caseTitle: data['caseTitle'] ?? '',
+      title: data['title'] ?? '',
+      body: data['body'] ?? '',
+      type: data['type'] ?? 'case_update',
+      createdAt: ts is Timestamp ? ts.toDate() : null,
+      read: data['read'] ?? false,
+    );
+  }
+}
+
 class Appointment {
   final String id;
   final String clientId;

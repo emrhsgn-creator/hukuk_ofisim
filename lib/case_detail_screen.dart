@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'app_theme.dart';
 import 'models.dart';
 import 'common_widgets.dart';
+import 'firebase_service.dart';
 
 class CaseDetailScreen extends StatefulWidget {
   final CaseFile caseFile;
@@ -321,6 +322,27 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                       .collection('cases')
                       .doc(_currentCase.id)
                       .update(updateData);
+
+                  // 🔔 Yalnız YENİ gelişmelerde müvekkile bildirim gönder
+                  if (existingEvent == null) {
+                    final aciklama = descController.text.trim();
+                    final ozet = aciklama.isNotEmpty
+                        ? "${titleController.text.trim()} — $aciklama"
+                        : titleController.text.trim();
+                    final govde = selectedType == 'hearing'
+                        ? "$ozet\nSonraki duruşma: $dateStr $timeStr"
+                        : ozet;
+                    FirestoreService().notifyCaseUpdate(
+                      clientEmail: _currentCase.clientEmail ?? '',
+                      caseId: _currentCase.id,
+                      caseTitle: _currentCase.title,
+                      title: 'Dosyanızda yeni gelişme',
+                      body: govde,
+                      type: selectedType == 'hearing'
+                          ? 'hearing'
+                          : 'case_update',
+                    );
+                  }
 
                   if (!mounted) return;
                   setState(() {
